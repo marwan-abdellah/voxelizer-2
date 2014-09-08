@@ -44,11 +44,11 @@ Voxelizer::Voxelizer(int size, const string& pFile, bool verbose): _size(size), 
 		if (_verbose) cout << "vertices : " << _numVertices << std::endl;
 		_LoadFromMesh(mesh);
 
-		if (!scene) delete scene;
+        // if (!scene) delete scene;
 		_isInit = true;
 	} catch (std::exception& e) {
 		cout << e.what() << endl;
-		if (!scene) delete scene;
+        // if (!scene) delete scene;
 	}
 	if (_verbose) cout << "done." << endl;
 }
@@ -673,7 +673,7 @@ void Voxelizer::WriteSimple(const string& pFile) {
 		for (int y = ly; y <= uy; ++y) {
 			for (int z = lz; z <= uz; ++z) {
 				voxelInt = x*_size2 + y*_size + z;
-				tmp = (_voxels.get())[voxelInt/BATCH_SIZE].load();
+                tmp = (_voxels.get())[voxelInt/BATCH_SIZE].load();
 				if (GETBIT(tmp, voxelInt)) {
 					*output << x << ' ' << y << ' ' << z << '\n';
 //					if (count == 0) cout << x << " " << y << " " << z << endl;
@@ -684,6 +684,82 @@ void Voxelizer::WriteSimple(const string& pFile) {
 	}
 	output->close();
 	if (_verbose) cout << "wrote " << count << " voxels" << endl;
+}
+
+
+void Voxelizer::WriteRaw(const string& pFile) {
+    if (_verbose) cout << "writing voxels to a raw file..." << endl;
+    int lx = (*_meshVoxLB)[0], ux = (*_meshVoxUB)[0], ly = (*_meshVoxLB)[1], uy = (*_meshVoxUB)[1], lz = (*_meshVoxLB)[2], uz = (*_meshVoxUB)[2];
+
+    char hdrFileName[1000];
+    strcpy(hdrFileName, pFile.c_str());
+    strcat(hdrFileName,".hdr");
+    ofstream* hdrFile = new ofstream(hdrFileName, ios::out);
+
+    //
+    // write header
+    //
+    *hdrFile << _size << endl;
+    *hdrFile << (double) (*_lb)[0] << " " << (double) (*_lb)[1] << " " << (double) (*_lb)[2] << endl;
+    *hdrFile << (double) (*_halfUnit)[0] * 2 << endl;
+    hdrFile->close();
+
+    char rawFileName[1000];
+    strcpy(rawFileName, pFile.c_str());
+    strcat(rawFileName, ".img");
+
+    ofstream* output = new ofstream(rawFileName, ios::out | ios::binary);
+
+    if (_verbose) cout << "dim : " << _size << " x " << _size << " x " << _size << endl;
+    if (_verbose) cout << "lower bound : " << (*_lb) << endl;
+    if (_verbose) cout << "voxel size : " << (*_halfUnit)[0] * 2 << endl;
+
+    // This works only for uniform grids.
+    const size_t volumeSize = _size * _size * _size;
+    unsigned char* rawVolume = (unsigned char*) malloc (sizeof(unsigned char) * volumeSize);
+    if (_verbose) cout << "volume size : " << volumeSize << endl;
+
+    //
+    // write data
+    //
+    unsigned int voxelInt, tmp, count = 0;
+    for (int x = lx; x <= ux; ++x) {
+        for (int y = ly; y <= uy; ++y) {
+            for (int z = lz; z <= uz; ++z) {
+                voxelInt = x*_size2 + y*_size + z;
+                if (!(x < 0 || x >= _size || y < 0 || y >= _size || z < 0 || z >= _size)) {
+                    unsigned int index3d = (x) + _size * ((y) + _size * (z));
+                    tmp = (_voxels.get())[voxelInt/BATCH_SIZE].load();
+                    // cout << x << " " << y << " " << z << "[" << index3d << "]" << endl;
+                    if (GETBIT(tmp, voxelInt)) {
+                        unsigned char value = 255;
+                        rawVolume[index3d] = value;
+
+                        ++count;
+                    } else {
+                        unsigned char null = 0;
+                        rawVolume[index3d] = null;
+                    }
+                }
+            }
+        }
+    }
+    if (_verbose) cout << "Writing data to the raw volume done..." << endl;
+
+    printf("Hey");
+    int ctr = 0;
+    for (int i = 0; i < _size; i++) {
+        for (int j = 0; j < _size; j++) {
+            for (int k = 0; k < _size; k++) {
+                *output << rawVolume[ctr];
+                ctr++;
+            }
+        }
+    }
+    output->close();
+    free(rawVolume);
+    if (_verbose) cout << "wrote " << count << " voxels" << endl;
+    if (_verbose) cout << "Writing data to the raw volume file done..." << endl;
 }
 
 Voxelizer::~Voxelizer() {

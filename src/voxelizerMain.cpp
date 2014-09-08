@@ -32,6 +32,7 @@ int main(int args, char* argv[]) {
 		cout << "-------------------------------------------" << endl;
 		timer.Restart();
 		voxelizer.WriteSimple(outputFile);
+        voxelizer.WriteRaw(outputFile);
 //		voxelizer.write(outputFile);
 //		voxelizer.writeForView(outputFile);
 		timer.Stop();

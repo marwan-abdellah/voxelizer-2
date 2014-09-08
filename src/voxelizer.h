@@ -96,6 +96,7 @@ public:
 	void VoxelizeSolid(int numThread=1);
 	void Write(const string& pFile);
 	void WriteSimple(const string& pFile);
+    void WriteRaw(const string& pFile);
 	void WriteForView(const string& pFile);
 	Voxelizer(int size, const string& pFile, bool verbose);
 	virtual ~Voxelizer();
