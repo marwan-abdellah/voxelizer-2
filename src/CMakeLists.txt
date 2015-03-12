@@ -28,6 +28,8 @@ target_link_libraries(voxelizer
     ${Boost_DATE_TIME_LIBRARY}
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
+install(PROGRAMS ${CMAKE_BINARY_DIR}/bin/voxelizer DESTINATION bin COMPONENT dev)
+
 #add_library(${PROJECT_NAME} STATIC ${voxelizer_SRC})
 
 #add_executable(collisionChecker collisionChecker.cpp collisionChecker.h timer.cpp timer.h voxelizer.cpp voxelizer.h threadPool.cpp threadPool.h commons.cpp commons.h triBox.cpp triBox.h)
