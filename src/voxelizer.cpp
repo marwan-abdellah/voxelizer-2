@@ -699,7 +699,7 @@ void Voxelizer::WriteRaw(const string& pFile) {
     //
     // write header
     //
-    *hdrFile << _size << endl;
+    *hdrFile << _size << " " << _size << " " << _size << endl;
     *hdrFile << (double) (*_lb)[0] << " " << (double) (*_lb)[1] << " " << (double) (*_lb)[2] << endl;
     *hdrFile << (double) (*_halfUnit)[0] * 2 << endl;
     hdrFile->close();
@@ -746,7 +746,6 @@ void Voxelizer::WriteRaw(const string& pFile) {
     }
     if (_verbose) cout << "Writing data to the raw volume done..." << endl;
 
-    printf("Hey");
     int ctr = 0;
     for (int i = 0; i < _size; i++) {
         for (int j = 0; j < _size; j++) {
